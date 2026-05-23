@@ -35,34 +35,39 @@ function renderCalendar() {
     const shift = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
     const totalDays = new Date(year, month + 1, 0).getDate();
 
-    // Создаем пустые ячейки для сдвига дней недели
+    // Пустые ячейки для сдвига дней недели
     for (let i = 0; i < shift; i++) {
         const emptyDiv = document.createElement('div');
         calendarDays.appendChild(emptyDiv);
     }
 
-    // Создаем ячейки с числами
+    // Отрисовка дней месяца
     for (let day = 1; day <= totalDays; day++) {
         const dayDiv = document.createElement('div');
         dayDiv.innerText = day;
         dayDiv.classList.add('day-cell');
 
-        const currentMonthStr = String(month + 1).padStart(2, '0');
-        const currentDayStr = String(day).padStart(2, '0');
-        const dateKey = year + "-" + currentMonthStr + "-" + currentDayStr;
+        // Вручную собираем строку даты без сложных функций
+        let displayMonth = month + 1;
+        if (displayMonth < 10) displayMonth = '0' + displayMonth;
+        let displayDay = day;
+        if (displayDay < 10) displayDay = '0' + displayDay;
+        
+        const dateKey = year + '-' + displayMonth + '-' + displayDay;
 
-        // Если дата занята базой данных
+        // Проверяем, занята ли дата бэкендом
         if (busyDates.includes(dateKey)) {
-            dayDiv.classList.add('busy');
-            dayDiv.style.opacity = '0.3';
-            dayDiv.style.pointerEvents = 'none';
+            dayDiv.style.background = '#444c56'; // Делаем темной
+            dayDiv.style.color = '#222';         // Текст почти невидимым
+            dayDiv.style.opacity = '0.4';
+            dayDiv.style.pointerEvents = 'none'; // Отключаем клики
         } else {
             // Если дата свободна
             dayDiv.addEventListener('click', function() {
                 const allCells = document.querySelectorAll('.day-cell');
-                for (let i = 0; i < allCells.length; i++) {
-                    allCells[i].classList.remove('selected');
-                }
+                allCells.forEach(function(cell) {
+                    cell.classList.remove('selected');
+                });
                 dayDiv.classList.add('selected');
                 
                 selectedDateStr = dateKey;
@@ -93,10 +98,10 @@ function showTimeSlots() {
 
         timeBtn.addEventListener('click', function() {
             const allBtns = document.querySelectorAll('#timeSlots button');
-            for (let i = 0; i < allBtns.length; i++) {
-                allBtns[i].style.background = 'var(--tg-theme-secondary-bg-color, #fff)';
-                allBtns[i].style.color = 'var(--tg-theme-text-color, #000)';
-            }
+            allBtns.forEach(function(btn) {
+                btn.style.background = 'var(--tg-theme-secondary-bg-color, #fff)';
+                btn.style.color = 'var(--tg-theme-text-color, #000)';
+            });
             
             timeBtn.style.background = 'var(--tg-theme-button-color, #3390ec)';
             timeBtn.style.color = 'var(--tg-theme-button-text-color, #fff)';
@@ -108,6 +113,7 @@ function showTimeSlots() {
         timeSlots.appendChild(timeBtn);
     });
 }
+
 submitBtn.addEventListener('click', function() {
     if (selectedDateStr && selectedTimeStr) {
         const dataToSend = {
