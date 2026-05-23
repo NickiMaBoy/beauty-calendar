@@ -4,30 +4,171 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Запись на маникюр</title>
-    <link rel="stylesheet" href="calendar.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <style>
+        :root {
+            --bg-color: var(--tg-theme-bg-color, #fff);
+            --text-color: var(--tg-theme-text-color, #000);
+            --hint-color: var(--tg-theme-hint-color, #999);
+            --button-color: var(--tg-theme-button-color, #3390ec);
+            --button-text-color: var(--tg-theme-button-text-color, #fff);
+            --secondary-bg: var(--tg-theme-secondary-bg-color, #f4f4f5);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--secondary-bg);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .calendar-container {
+            background-color: var(--bg-color);
+            width: 100%;
+            max-width: 400px;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .calendar-header button {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: var(--button-color);
+            cursor: pointer;
+            padding: 5px 10px;
+        }
+
+        .calendar-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-weight: bold;
+            color: var(--hint-color);
+            margin-bottom: 10px;
+        }
+
+        .days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            text-align: center;
+        }
+
+        .day-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: background 0.2s;
+        }
+
+        .day-cell:hover {
+            background-color: var(--secondary-bg);
+        }
+
+        .day-cell.selected {
+            background-color: var(--button-color) !important;
+            color: var(--button-text-color) !important;
+            font-weight: bold;
+        }
+
+        .time-slots-container {
+            margin-top: 20px;
+            width: 100%;
+            max-width: 400px;
+            background-color: var(--bg-color);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .time-slots-container h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .slots-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .slots-grid button {
+            padding: 12px;
+            border: 1px solid var(--hint-color);
+            border-radius: 8px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .submit-btn {
+            margin-top: 20px;
+            width: 100%;
+            max-width: 400px;
+            background-color: var(--button-color);
+            color: var(--button-text-color);
+            border: none;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
 <body>
+
     <div class="calendar-container">
         <div class="calendar-header">
             <button id="prevMonth">&lt;</button>
             <h2 id="monthTitle">Май 2026</h2>
             <button id="nextMonth">&gt;</button>
         </div>
-        
         <div class="weekdays">
             <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
         </div>
-        
         <div id="calendarDays" class="days"></div>
-
-        <div id="timeSlotsContainer" style="display: none; margin-top: 20px; text-align: center;">
-            <h3 style="margin-bottom: 10px; color: var(--tg-theme-text-color, #000);">Доступное время:</h3>
-            <div id="timeSlots" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;"></div>
-        </div>
-
-        <button id="submitBtn" class="submit-btn" style="display: none; margin-top: 20px; width: 100%;">Подтвердить запись</button>
     </div>
+
+    <div id="timeSlotsContainer" class="time-slots-container" style="display: none;">
+        <h3>Доступное время:</h3>
+        <div id="timeSlots" class="slots-grid"></div>
+    </div>
+
+    <button id="submitBtn" class="submit-btn" style="display: none;">Подтвердить запись</button>
 
     <script src="engine.js"></script>
 </body>
