@@ -1,3 +1,7 @@
+window.onerror = function(message, source, lineno, colno, error) {
+    alert("ОШИБКА: " + message + "\nСтрока: " + lineno);
+    return true;
+};
 // Инициализируем объект Телеграм Веб Апп
 // Через эту переменную 'tg' наш сайт будет общаться с приложением Telegram
 const tg = window.Telegram.WebApp;
