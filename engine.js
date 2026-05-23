@@ -2,13 +2,12 @@ const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-// Считываем занятые даты из GET-параметров ссылки бота
+// Получаем занятые даты из ссылки бота
 const urlParams = new URLSearchParams(window.location.search);
 const busyDaysParam = urlParams.get('busy_days') || '';
-// Превращаем строку "2026-05-24,2026-05-25" в удобный массив
-const busyDates = busyDaysParam.split(',');
+const busyDates = busyDaysParam ? busyDaysParam.split(',') : [];
 
-let currentDate = new Date(2026, 4, 1); // Май 2026 года
+let currentDate = new Date(2026, 4, 1); // Май 2026
 let selectedDateStr = null;
 let selectedTimeStr = null;
 
@@ -23,7 +22,6 @@ const monthsRu = [
     "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"
 ];
 
-// Встроенный шаблон свободных часов для любого дня
 const availableHours = ["10:00", "13:00", "16:00", "19:00"];
 
 function renderCalendar() {
@@ -31,44 +29,45 @@ function renderCalendar() {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
 
-    monthTitle.innerText = ${monthsRu[month]} ${year};
+    monthTitle.innerText = monthsRu[month] + " " + year;
 
     const firstDayIndex = new Date(year, month, 1).getDay();
     const shift = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
     const totalDays = new Date(year, month + 1, 0).getDate();
 
-    // Пустые ячейки для сдвига дней недели
+    // Создаем пустые ячейки для сдвига дней недели
     for (let i = 0; i < shift; i++) {
         const emptyDiv = document.createElement('div');
         calendarDays.appendChild(emptyDiv);
     }
 
-    // Отрисовка дней месяца
+    // Создаем ячейки с числами
     for (let day = 1; day <= totalDays; day++) {
         const dayDiv = document.createElement('div');
         dayDiv.innerText = day;
         dayDiv.classList.add('day-cell');
 
-        // Форматируем текущую дату ячейки в вид "ГГГГ-ММ-ДД"
         const currentMonthStr = String(month + 1).padStart(2, '0');
         const currentDayStr = String(day).padStart(2, '0');
-        const dateKey = ${year}-${currentMonthStr}-${currentDayStr};
+        const dateKey = year + "-" + currentMonthStr + "-" + currentDayStr;
 
-        // Проверяем, занята ли дата бэкендом
+        // Если дата занята базой данных
         if (busyDates.includes(dateKey)) {
-            dayDiv.classList.add('busy'); // Покрасим в css (сделай в style.css серым/темным)
+            dayDiv.classList.add('busy');
             dayDiv.style.opacity = '0.3';
-            dayDiv.style.pointerEvents = 'none'; // Делаем некликабельной
+            dayDiv.style.pointerEvents = 'none';
         } else {
-            // Если дата свободна — вешаем событие клика
-            dayDiv.addEventListener('click', () => {
-                // Снимаем выделение со старой даты
-                document.querySelectorAll('.day-cell').forEach(el => el.classList.remove('selected'));
+            // Если дата свободна
+            dayDiv.addEventListener('click', function() {
+                const allCells = document.querySelectorAll('.day-cell');
+                for (let i = 0; i < allCells.length; i++) {
+                    allCells[i].classList.remove('selected');
+                }
                 dayDiv.classList.add('selected');
                 
                 selectedDateStr = dateKey;
-                selectedTimeStr = null; // Сбрасываем старое выбранное время
-                submitBtn.style.display = 'none'; // Прячем кнопку отправки, пока время не выбрано
+                selectedTimeStr = null; 
+                submitBtn.style.display = 'none'; 
                 
                 showTimeSlots();
             });
@@ -78,12 +77,11 @@ function renderCalendar() {
     }
 }
 
-// Функция отображения доступных часов
 function showTimeSlots() {
     timeSlots.innerHTML = '';
     timeSlotsContainer.style.display = 'block';
 
-    availableHours.forEach(time => {
+    availableHours.forEach(function(time) {
         const timeBtn = document.createElement('button');
         timeBtn.innerText = time;
         timeBtn.style.padding = '10px 15px';
@@ -93,26 +91,24 @@ function showTimeSlots() {
         timeBtn.style.color = 'var(--tg-theme-text-color, #000)';
         timeBtn.style.cursor = 'pointer';
 
-        timeBtn.addEventListener('click', () => {
-            // Снимаем выделение со всех кнопок времени
-            document.querySelectorAll('#timeSlots button').forEach(btn => {
-                btn.style.background = 'var(--tg-theme-secondary-bg-color, #fff)';
-                btn.style.color = 'var(--tg-theme-text-color, #000)';
-            });
-            // Выделяем текущую
+        timeBtn.addEventListener('click', function() {
+            const allBtns = document.querySelectorAll('#timeSlots button');
+            for (let i = 0; i < allBtns.length; i++) {
+                allBtns[i].style.background = 'var(--tg-theme-secondary-bg-color, #fff)';
+                allBtns[i].style.color = 'var(--tg-theme-text-color, #000)';
+            }
+            
             timeBtn.style.background = 'var(--tg-theme-button-color, #3390ec)';
             timeBtn.style.color = 'var(--tg-theme-button-text-color, #fff)';
             
             selectedTimeStr = time;
-            submitBtn.style.display = 'block'; // Показываем кнопку подтверждения!
+            submitBtn.style.display = 'block'; 
         });
 
         timeSlots.appendChild(timeBtn);
     });
 }
-
-// Событие на кнопку «Подтвердить запись»
-submitBtn.addEventListener('click', () => {
+submitBtn.addEventListener('click', function() {
     if (selectedDateStr && selectedTimeStr) {
         const dataToSend = {
             date: selectedDateStr,
@@ -123,14 +119,14 @@ submitBtn.addEventListener('click', () => {
     }
 });
 
-document.getElementById('prevMonth').addEventListener('click', () => {
+document.getElementById('prevMonth').addEventListener('click', function() {
     currentDate.setMonth(currentDate.getMonth() - 1);
     timeSlotsContainer.style.display = 'none';
     submitBtn.style.display = 'none';
     renderCalendar();
 });
 
-document.getElementById('nextMonth').addEventListener('click', () => {
+document.getElementById('nextMonth').addEventListener('click', function() {
     currentDate.setMonth(currentDate.getMonth() + 1);
     timeSlotsContainer.style.display = 'none';
     submitBtn.style.display = 'none';
