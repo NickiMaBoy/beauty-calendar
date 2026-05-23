@@ -4,34 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Запись на маникюр</title>
-    
     <link rel="stylesheet" href="style.css">
-    
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
     <div class="calendar-container">
         <div class="calendar-header">
             <button id="prevMonth">&lt;</button>
-            <h2 id="monthYear"></h2>
+            <h2 id="monthTitle">Май 2026</h2>
             <button id="nextMonth">&gt;</button>
         </div>
         
-        <div class="calendar-grid">
-            <div class="day-label">Пн</div>
-            <div class="day-label">Вт</div>
-            <div class="day-label">Ср</div>
-            <div class="day-label">Чт</div>
-            <div class="day-label">Пт</div>
-            <div class="day-label">Сб</div>
-            <div class="day-label">Вс</div>
-            <div id="calendarDays" class="days-container">
+        <div class="weekdays">
+            <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
+        </div>
+        
+        <div id="calendarDays" class="days"></div>
+
+        <div id="timeSlotsContainer" style="display: none; margin-top: 20px; text-align: center;">
+            <h3 style="margin-bottom: 10px; color: var(--tg-theme-text-color, #000);">Доступное время:</h3>
+            <div id="timeSlots" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
                 </div>
         </div>
+
+        <button id="submitBtn" class="submit-btn" style="display: none; margin-top: 20px;">Подтвердить запись</button>
     </div>
 
-    <button id="confirmBtn" class="confirm-btn" style="display: none;">Подтвердить запись</button>
-
-    ​<script src="engine.js"></script>
+    <script src="engine.js"></script>
 </body>
 </html>
