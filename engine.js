@@ -1,20 +1,31 @@
+// Инициализация Telegram Web App
 const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-// Получаем занятые даты из ссылки бота
+// Получаем параметры из URL ссылки
 const urlParams = new URLSearchParams(window.location.search);
-const busyDaysParam = urlParams.get('busy_days') || '';
-const busyDates = busyDaysParam ? busyDaysParam.split(',') : [];
+const busyParam = urlParams.get('busy');
 
-let currentDate = new Date(2026, 4, 1); // Май 2026
+// БРОНЕБОЙНАЯ ПРОВЕРКА: если busy пустой или его нет, делаем просто пустой массив
+let busyDates = [];
+if (busyParam && busyParam.trim() !== "") {
+    busyDates = busyParam.split(',');
+}
+
+let currentDate = new Date();
 let selectedDateStr = null;
-let selectedTimeStr = null;
+let selectedTimeSlot = null;
+
+// Фиктивные таймслоты для примера
+const availableSlots = ["10:00", "13:00", "16:00", "19:00"];
 
 const monthTitle = document.getElementById('monthTitle');
 const calendarDays = document.getElementById('calendarDays');
+const prevMonthBtn = document.getElementById('prevMonth');
+const nextMonthBtn = document.getElementById('nextMonth');
 const timeSlotsContainer = document.getElementById('timeSlotsContainer');
-const timeSlots = document.getElementById('timeSlots');
+const timeSlotsGrid = document.getElementById('timeSlots');
 const submitBtn = document.getElementById('submitBtn');
 
 const monthsRu = [
@@ -22,121 +33,112 @@ const monthsRu = [
     "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"
 ];
 
-const availableHours = ["10:00", "13:00", "16:00", "19:00"];
-
 function renderCalendar() {
-    calendarDays.innerHTML = '';
+    calendarDays.innerHTML = "";
+    
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
 
-    monthTitle.innerText = monthsRu[month] + " " + year;
+    monthTitle.innerText = ${monthsRu[month]} ${year};
 
+    // Первый день месяца
     const firstDayIndex = new Date(year, month, 1).getDay();
+    // Корректируем под русский календарь (чтобы Пн был первым, а не Вс)
     const shift = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
+
+    // Количество дней в текущем месяце
     const totalDays = new Date(year, month + 1, 0).getDate();
 
-    // Пустые ячейки для сдвига дней недели
+    // Отрисовка пустых ячеек для сдвига дней недели
     for (let i = 0; i < shift; i++) {
-        const emptyDiv = document.createElement('div');
-        calendarDays.appendChild(emptyDiv);
+        const emptyCell = document.createElement('div');
+        calendarDays.appendChild(emptyCell);
     }
 
-    // Отрисовка дней месяца
+    // Отрисовка самих чисел месяца
     for (let day = 1; day <= totalDays; day++) {
-        const dayDiv = document.createElement('div');
-        dayDiv.innerText = day;
-        dayDiv.classList.add('day-cell');
+        const dayCell = document.createElement('div');
+        dayCell.classList.add('day-cell');
+        dayCell.innerText = day;
 
-        // Вручную собираем строку даты без сложных функций
-        let displayMonth = month + 1;
-        if (displayMonth < 10) displayMonth = '0' + displayMonth;
-        let displayDay = day;
-        if (displayDay < 10) displayDay = '0' + displayDay;
-        
-        const dateKey = year + '-' + displayMonth + '-' + displayDay;
+        // Форматируем дату в вид YYYY-MM-DD для сверки с базой
+        const currentMonthStr = String(month + 1).padStart(2, '0');
+        const currentDayStr = String(day).padStart(2, '0');
+        const dateString = ${year}-${currentMonthStr}-${currentDayStr};
 
-        // Проверяем, занята ли дата бэкендом
-        if (busyDates.includes(dateKey)) {
-            dayDiv.style.background = '#444c56'; // Делаем темной
-            dayDiv.style.color = '#222';         // Текст почти невидимым
-            dayDiv.style.opacity = '0.4';
-            dayDiv.style.pointerEvents = 'none'; // Отключаем клики
+        // Если дата есть в списке занятых
+        if (busyDates.includes(dateString)) {
+            dayCell.classList.add('busy');
         } else {
-            // Если дата свободна
-            dayDiv.addEventListener('click', function() {
-                const allCells = document.querySelectorAll('.day-cell');
-                allCells.forEach(function(cell) {
-                    cell.classList.remove('selected');
-                });
-                dayDiv.classList.add('selected');
+            // Если свободна — вешаем клик
+            dayCell.addEventListener('click', () => {
+                // Снимаем выделение с прошлых дней
+                document.querySelectorAll('.day-cell').forEach(cell => cell.classList.remove('selected'));
+                dayCell.classList.add('selected');
                 
-                selectedDateStr = dateKey;
-                selectedTimeStr = null; 
-                submitBtn.style.display = 'none'; 
-                
+                selectedDateStr = dateString;
                 showTimeSlots();
             });
         }
 
-        calendarDays.appendChild(dayDiv);
+        calendarDays.appendChild(dayCell);
     }
 }
 
 function showTimeSlots() {
-    timeSlots.innerHTML = '';
-    timeSlotsContainer.style.display = 'block';
+    timeSlotsGrid.innerHTML = "";
+    timeSlotsContainer.style.display = "block";
+    submitBtn.style.display = "none"; // Прячем главную кнопку, пока не выбран час
+    selectedTimeSlot = null;
 
-    availableHours.forEach(function(time) {
-        const timeBtn = document.createElement('button');
-        timeBtn.innerText = time;
-        timeBtn.style.padding = '10px 15px';
-        timeBtn.style.border = '1px solid #ccc';
-        timeBtn.style.borderRadius = '8px';
-        timeBtn.style.background = 'var(--tg-theme-secondary-bg-color, #fff)';
-        timeBtn.style.color = 'var(--tg-theme-text-color, #000)';
-        timeBtn.style.cursor = 'pointer';
-
-        timeBtn.addEventListener('click', function() {
-            const allBtns = document.querySelectorAll('#timeSlots button');
-            allBtns.forEach(function(btn) {
-                btn.style.background = 'var(--tg-theme-secondary-bg-color, #fff)';
-                btn.style.color = 'var(--tg-theme-text-color, #000)';
+    availableSlots.forEach(slot => {
+        const slotBtn = document.createElement('button');
+        slotBtn.innerText = slot;
+        
+        slotBtn.addEventListener('click', () => {
+            document.querySelectorAll('.slots-grid button').forEach(btn => {
+                btn.style.backgroundColor = "var(--bg-color)";
+                btn.style.color = "var(--text-color)";
             });
             
-            timeBtn.style.background = 'var(--tg-theme-button-color, #3390ec)';
-            timeBtn.style.color = 'var(--tg-theme-button-text-color, #fff)';
+            slotBtn.style.backgroundColor = "var(--button-color)";
+            slotBtn.style.color = "var(--button-text-color)";
             
-            selectedTimeStr = time;
-            submitBtn.style.display = 'block'; 
+            selectedTimeSlot = slot;
+            submitBtn.style.display = "block"; // Показываем кнопку отправки
+            submitBtn.scrollIntoView({ behavior: 'smooth' });
         });
 
-        timeSlots.appendChild(timeBtn);
+        timeSlotsGrid.appendChild(slotBtn);
     });
 }
+// Переключение месяцев
+prevMonthBtn.addEventListener('click', () => {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    renderCalendar();
+    timeSlotsContainer.style.style.display = "none";
+    submitBtn.style.display = "none";
+});
 
-submitBtn.addEventListener('click', function() {
-    if (selectedDateStr && selectedTimeStr) {
+nextMonthBtn.addEventListener('click', () => {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    renderCalendar();
+    timeSlotsContainer.style.display = "none";
+    submitBtn.style.display = "none";
+});
+
+// Отправка данных обратно в Телеграм-бота
+submitBtn.addEventListener('click', () => {
+    if (selectedDateStr && selectedTimeSlot) {
         const dataToSend = {
             date: selectedDateStr,
-            time: selectedTimeStr
+            time: selectedTimeSlot
         };
+        // Отправляем JSON-строку в метод Telegram
         tg.sendData(JSON.stringify(dataToSend));
         tg.close();
     }
 });
 
-document.getElementById('prevMonth').addEventListener('click', function() {
-    currentDate.setMonth(currentDate.getMonth() - 1);
-    timeSlotsContainer.style.display = 'none';
-    submitBtn.style.display = 'none';
-    renderCalendar();
-});
-
-document.getElementById('nextMonth').addEventListener('click', function() {
-    currentDate.setMonth(currentDate.getMonth() + 1);
-    timeSlotsContainer.style.display = 'none';
-    submitBtn.style.display = 'none';
-    renderCalendar();
-});
-
+// Первый запуск
 renderCalendar();
