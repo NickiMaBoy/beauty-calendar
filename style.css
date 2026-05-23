@@ -1,113 +1,117 @@
-/* Общие настройки для всей страницы */
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: var(--tg-theme-bg-color, #fff); /* Берем цвет фона из темы Телеграма! */
-    color: var(--tg-theme-text-color, #000); /* Берем цвет текста из темы Телеграма! */
+:root {
+    --bg-color: var(--tg-theme-bg-color, #fff);
+    --text-color: var(--tg-theme-text-color, #000);
+    --hint-color: var(--tg-theme-hint-color, #999);
+    --button-color: var(--tg-theme-button-color, #3390ec);
+    --button-text-color: var(--tg-theme-button-text-color, #fff);
+    --secondary-bg: var(--tg-theme-secondary-bg-color, #f4f4f5);
+}
+
+* {
+    box-sizing: border-box;
     margin: 0;
-    padding: 20px;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: var(--secondary-bg);
+    color: var(--text-color);
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    -webkit-user-select: none; /* Запрещаем выделение текста, чтобы было похоже на нативное приложение */
+    justify-content: center;
+    padding: 20px;
 }
 
-/* Контейнер календаря */
 .calendar-container {
-    background-color: var(--tg-theme-secondary-bg-color, #f4f4f4);
-    border-radius: 12px;
-    padding: 15px;
+    background-color: var(--bg-color);
     width: 100%;
-    max-width: 350px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    max-width: 400px;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* Шапка с месяцем */
 .calendar-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 
 .calendar-header button {
     background: none;
     border: none;
-    font-size: 1.2rem;
-    color: var(--tg-theme-button-color, #3390ec);
+    font-size: 18px;
+    color: var(--button-color);
     cursor: pointer;
     padding: 5px 10px;
 }
 
-/* Сетка календаря */
-.calendar-grid {
+.calendar-header h2 {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+/* СЕТКА ДНЕЙ НЕДЕЛИ: строго 7 колонок */
+.weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-weight: bold;
+    color: var(--hint-color);
+    margin-bottom: 10px;
+}
+
+/* СЕТКА ЧИСЕЛ МЕСЯЦА: строго 7 колонок */
+.days {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 5px;
     text-align: center;
 }
 
-/* Названия дней недели (Пн, Вт...) */
-.day-label {
-    font-size: 0.8rem;
-    color: #888;
-    padding-bottom: 5px;
-}
-
-/* Контейнер для самих чисел */
-.days-container {
-    display: contents; /* Позволяет числам встать в ту же сетку grid */
-}
-
-/* Стиль для каждого числа (дня) */
-.calendar-day {
-    aspect-ratio: 1; /* Делаем дни квадратными */
+.day-cell {
+    aspect-ratio: 1;
     display: flex;
-    justify-content: center;
     align-items: center;
-    border-radius: 50%; /* Дни будут в кружочках при наведении/выборе */
+    justify-content: center;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 0.95rem;
-    transition: background-color 0.2s;
+    font-size: 15px;
+    transition: background 0.2s;
 }
 
-/* Стиль для дней, которые не принадлежат текущему месяцу (пустые места) */
-.calendar-day.empty {
-    cursor: default;
+.day-cell:hover {
+    background-color: var(--secondary-bg);
 }
 
-/* Стиль для сегодняшнего дня */
-.calendar-day.today {
+.day-cell.selected {
+    background-color: var(--button-color) !important;
+    color: var(--button-text-color) !important;
     font-weight: bold;
-    color: var(--tg-theme-button-color, #3390ec);
 }
 
-/* Стиль при наведении (на компьютере) */
-.calendar-day:not(.empty):hover {
-    background-color: var(--tg-theme-secondary-bg-color, #e0e0e0);
+/* Стиль для занятых дней */
+.day-cell.busy {
+    background-color: #555 !important;
+    color: #222 !important;
+    opacity: 0.3;
+    pointer-events: none;
 }
 
-/* Стиль для выбранного дня */
-.calendar-day.selected {
-    background-color: var(--tg-theme-button-color, #3390ec) !important;
-    color: var(--tg-theme-button-text-color, #fff) !important;
-}
-
-/* Кнопка подтверждения */
-.confirm-btn {
-    margin-top: 20px;
-    background-color: var(--tg-theme-button-color, #3390ec);
-    color: var(--tg-theme-button-text-color, #fff);
+/* Кнопка отправки внизу */
+.submit-btn {
+    background-color: var(--button-color);
+    color: var(--button-text-color);
     border: none;
-    border-radius: 12px;
-    padding: 15px 30px;
-    font-size: 1rem;
+    padding: 12px;
+    font-size: 16px;
     font-weight: bold;
+    border-radius: 10px;
     cursor: pointer;
-    width: 100%;
-    max-width: 350px;
-    transition: opacity 0.3s;
+    transition: opacity 0.2s;
 }
 
-.confirm-btn:active {
-    opacity: 0.8;
+.submit-btn:hover {
+    opacity: 0.9;
 }
