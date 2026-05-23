@@ -55,7 +55,7 @@ function renderCalendar() {
             }
             dayDiv.classList.add('selected');
             selectedDate = new Date(year, month, day);
-            confirmBtn.style.style.display = 'block';
+            confirmBtn.style.display = 'block';
         });
 
         calendarDaysContainer.appendChild(dayDiv);
